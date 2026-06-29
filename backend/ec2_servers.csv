@@ -1,0 +1,101 @@
+Server Name,Client Name,Product
+LMS-SERVER-0,LMS,unknown
+LMS-SERVER-2,LMS,unknown
+Nexus-New,Nexus,unknown
+a-lsac-cftr-webapp-server-1a,LSAC,cftr
+a-lsac-cftr-webapp-server-1b,LSAC,cftr
+accenture-ctl-csap-webapp-server-0,Accenture,csap
+accenture-ctl-csap-webapp-server-1,Accenture,csap
+accenture-ctl-csap-webapp-server-2,Accenture,csap
+accenture-ctl-ctix-bg-server-1,Accenture,ctix
+accenture-ctl-ctix-bg-server-2,Accenture,ctix
+accenture-ctl-ctix-bg-server-3,Accenture,ctix
+accenture-ctl-ctix-kafka-zk-bg-server,Accenture,ctix
+accenture-ctl-ctix-scripts-server,Accenture,ctix
+accenture-ctl-ctix-webapp-server,Accenture,ctix
+accenture-uat-ctix-bg-server-1,Accenture,ctix
+accenture-uat-ctix-bg-server-2,Accenture,ctix
+accenture-uat-ctix-webapp-server,Accenture,ctix
+adp-csap-webapp-server-0,ADP,csap
+aemo-csol-webapp-server-0,AEMO,csol
+aemo-ctix-server-0,AEMO,ctix
+aemo-ctix-server-1,AEMO,ctix
+aemo-ctix-server-2,AEMO,ctix
+aemo-swarm-manager-02,AEMO,unknown
+bangkokmsp-cftr-webapp-server,Bangkok MSP,cftr
+bangkokmsp-csol-webapp-server,Bangkok MSP,csol
+bangkokmsp-ctix-bg-server-1,Bangkok MSP,ctix
+bangkokmsp-ctix-bg-server-2,Bangkok MSP,ctix
+bangkokmsp-ctix-webapp-server,Bangkok MSP,ctix
+block-ctix-server-0,Block,ctix
+block-ctix-server-1,Block,ctix
+block-ctix-server-2,Block,ctix
+blue-cross-csap-webapp-server,Blue Cross,csap
+bucks-ctix-webapp-server,Bucks,ctix
+cctx-csap-webapp-server,CCTX,csap
+cryptolsac-csap-webapp-server,CryptoISAC,csap
+cryptolsac-csol-webapp-server,CryptoISAC,csol
+cyops-csol-webapp-server-0,CyOps,csol
+demo-csap-webapp-server,Demo,csap
+demov5-csol-webapp-server-0,Demo V5,csol
+dnglsac-v3-ctix-bg-server-1,DNGLSAC,ctix
+dnglsac-v3-ctix-bg-server-2,DNGLSAC,ctix
+dnglsac-v3-ctix-webapp-server,DNGLSAC,ctix
+globalsolutions-cftr-es-blue,Global Solutions,cftr
+globalsolutions-co-es-blue,Global Solutions,csol
+h-lsac-csap-webapp-server,H-LSAC,csap
+haleon-cftr-webapp-server,Haleon,cftr
+haleon-csol-webapp-server,Haleon,csol
+haleon-dev-csol-webapp-server,Haleon,csol
+invesco-ctix-server-0,Invesco,ctix
+invesco-ctix-server-1,Invesco,ctix
+mts-isac-csap-webapp-server,MTS ISAC,csap
+mts-isac-ctix-v3-bg-02,MTS ISAC,ctix
+mts-isac-ctix-v3-bg-01,MTS ISAC,ctix
+mts-isac-ctix-v3-webapp,MTS ISAC,ctix
+ntt-ctlx-app-server-3.0,NTT,ctix
+ntt-prod-cftr-webapp-server,NTT,cftr
+ntt-prod-csol-webapp-server,NTT,csol
+ntt-uat-csol-webapp-server,NTT,csol
+ntt-ctlx-db-server-3.0,NTT,ctix
+ntt-uat-cftr-all-in-1,NTT,cftr
+nomurav3-prod-ctix-server-2,Nomura,ctix
+nomurav3-prod-ctix-server-1,Nomura,ctix
+nomurav3-uat-ctix-bg-server-1,Nomura,ctix
+nomurav3-prod-ctix-server,Nomura,ctix
+nomurav3-uat-ctix-webapp-server,Nomura,ctix
+nomurav3-uat-ctix-bg-server-2,Nomura,ctix
+nba-ctlx-bg-server-2-new,NBA,ctix
+nba-ctlx-bg-server-1-new,NBA,ctix
+nba-ctlx-webapp-server,NBA,ctix
+nba-csap-webapp-server,NBA,csap
+nba-swarm-manager-01-new,NBA,unknown
+nextera-cftr-webapp-server-0,Nextera,cftr
+nextera-csol-webapp-server-0,Nextera,csol
+omf-ctix-bg-server-1,OMF,ctix
+omf-ctix-bg-server-2,OMF,ctix
+omf-ctix-webapp-server,OMF,ctix
+pennstatehealth-csol-webapp-server,Penn State Health,csol
+pennstatehealth-ctix-server-1,Penn State Health,ctix
+pennstatehealth-ctix-server-2,Penn State Health,ctix
+pennstatehealth-ctix-server-0,Penn State Health,ctix
+schroders-csol-webapp-server,Schroders,csol
+schroders-csol-webapp-server-2,Schroders,csol
+snowcone-csap-webapp-server-0,M&T,csap
+snowcone-ctix-server-1,M&T,ctix
+snowcone-csap-webapp-server-1,M&T,csap
+snowcone-csap-webapp-server-2,M&T,csap
+snowcone-ctix-server-0,M&T,ctix
+snowcone-ctix-server-2,M&T,ctix
+nuggets-ctix-webapp-server,Nuggets,ctix
+proskauer-cftr-webapp-server-0,Proskauer,cftr
+psta-csap-webapp-server,Motorola,csap
+s-isac-csap-web-app-server,S-ISAC,csap
+solcyber-cftr-webapp-server-0,SolCyber,cftr
+solcyber-csol-webapp-server-0,SolCyber,csol
+uber-csol-webapp-server-0,Uber,csol
+uber-csol-background-server,Uber,csol
+ucg-csol-webapp-server-0,UniCredit,csol
+ucg-csap-webapp-server-0,UniCredit,csap
+vil-cftr-webapp-server,Vodafone,cftr
+z-cert-server-csap-uat,Z-CERT,csap
