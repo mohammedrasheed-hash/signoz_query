@@ -331,6 +331,13 @@ Reuses the customer/product routing logic and HAR extraction from the
 original CLI script, exposed as a single /generate endpoint the React
 frontend calls.
 """
+"""
+SigNoz Query Generator — FastAPI backend.
+
+Reuses the customer/product routing logic and HAR extraction from the
+original CLI script, exposed as a single /generate endpoint the React
+frontend calls.
+"""
 import json
 import os
 from datetime import datetime, timedelta, timezone
@@ -536,7 +543,19 @@ BACKEND_RESOURCE_TYPES = {"xhr", "fetch", "document"}
 
 
 def is_id_segment(segment: str) -> bool:
-    return bool(ID_SEGMENT_RE.match(segment))
+    if ID_SEGMENT_RE.match(segment):
+        return True
+    # Generic catch-all: real route words are essentially never 12+ chars of
+    # pure alphanumerics mixing letters AND digits (e.g. ULIDs like
+    # '01KWC3TMZN4V197QV0Z7CDXXBY', nanoids, random tokens) -- but legitimate
+    # short segments like 'v3', 'api', 'ctix' stay untouched since they're
+    # either too short or don't mix letters+digits.
+    if segment.isalnum() and len(segment) >= 12:
+        has_digit = any(c.isdigit() for c in segment)
+        has_alpha = any(c.isalpha() for c in segment)
+        if has_digit and has_alpha:
+            return True
+    return False
 
 
 def meaningful_endpoint(path: str) -> str:
@@ -711,23 +730,44 @@ async def generate(
     ]
 
     if har_info:
+        # Each HAR-derived signal becomes its OWN candidate rather than one
+        # big AND'd clause. Real-world testing showed why this matters: a
+        # request path may simply never be echoed into the log body (giving
+        # 0 results and poisoning a combined AND clause), while a bare
+        # status-code match can produce false positives (matching an
+        # unrelated coincidental '500' elsewhere in the log). Keeping them
+        # independent means one bad assumption doesn't take out the others,
+        # and the relevance-scoring step downstream judges each on its own.
         har_path_candidates = list(dict.fromkeys(har_info["paths"] + har_info["endpoint_hints"]))
-        har_parts = []
         g_path = group_clause(har_path_candidates)
-        g_status = group_clause(har_info["statuses"])
         if g_path:
-            har_parts.append(g_path)
-        if g_status:
-            har_parts.append(g_status)
-        if har_info["statuses"]:
-            har_parts.append("body contains 'ERROR'")
-        if har_parts:
-            har_query = base + " AND " + " AND ".join(har_parts)
+            path_query = base + " AND " + g_path
             candidates.append({
-                "strategy": "har_narrowed",
-                "description": "Narrowed using error endpoints/status codes from the HAR file",
-                "query_without_time": har_query,
-                "query_with_time": with_time(har_query),
+                "strategy": "har_endpoint",
+                "description": "Narrowed using error endpoint(s) from the HAR file",
+                "query_without_time": path_query,
+                "query_with_time": with_time(path_query),
+            })
+
+        g_status = group_clause(har_info["statuses"])
+        if g_status:
+            status_query = base + " AND " + g_status
+            candidates.append({
+                "strategy": "har_status",
+                "description": "Narrowed using HTTP status code(s) from the HAR file -- "
+                                "note: a bare status-code string can false-positive-match "
+                                "unrelated numbers in log content, verify relevance carefully",
+                "query_without_time": status_query,
+                "query_with_time": with_time(status_query),
+            })
+
+        if har_info["statuses"]:
+            error_query = base + " AND body contains 'ERROR'"
+            candidates.append({
+                "strategy": "har_error_marker",
+                "description": "Narrowed to ERROR-level log lines only, since the HAR contained error responses",
+                "query_without_time": error_query,
+                "query_with_time": with_time(error_query),
             })
 
     keyword_list = [k.strip() for k in (ticket_keywords or "").split(",") if k.strip()]
@@ -742,11 +782,16 @@ async def generate(
         })
 
     # "Best guess" single query for backward compatibility with callers that
-    # only look at the top-level fields: prefer HAR-narrowed, then
-    # ticket-keyword-narrowed, then base.
-    best = next((c for c in candidates if c["strategy"] == "har_narrowed"), None) \
-        or next((c for c in candidates if c["strategy"] == "ticket_keywords"), None) \
+    # only look at the top-level fields. Priority: error-marker (most
+    # reliable per real-world testing) > endpoint > status (least reliable,
+    # prone to false positives) > ticket keywords > base.
+    best = (
+        next((c for c in candidates if c["strategy"] == "har_error_marker"), None)
+        or next((c for c in candidates if c["strategy"] == "har_endpoint"), None)
+        or next((c for c in candidates if c["strategy"] == "har_status"), None)
+        or next((c for c in candidates if c["strategy"] == "ticket_keywords"), None)
         or candidates[0]
+    )
 
     return {
         "base_query": base,
