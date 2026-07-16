@@ -520,20 +520,76 @@ def build_base_query(customer, product, instancetype):
 # ──────────────────────────────────────────────────────────────────────────
 # HAR extraction
 # ──────────────────────────────────────────────────────────────────────────
+import re
+
+ID_SEGMENT_RE = re.compile(
+    r"^("
+    r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"  # UUID
+    r"|\d+"                                                                          # pure digits
+    r"|[0-9a-fA-F]{16,}"                                                             # long hex hash
+    r")$"
+)
+STATIC_ASSET_RE = re.compile(
+    r"\.(js|css|png|jpe?g|gif|svg|woff2?|ttf|ico|map|json)$", re.IGNORECASE
+)
+BACKEND_RESOURCE_TYPES = {"xhr", "fetch", "document"}
+
+
+def is_id_segment(segment: str) -> bool:
+    return bool(ID_SEGMENT_RE.match(segment))
+
+
+def meaningful_endpoint(path: str) -> str:
+    """Strip resource-ID path segments (UUIDs, numeric IDs, hashes) so the
+    remaining path reads like the *route*, not one specific request -- e.g.
+    '/ctix/threatdata/report/239fda18-.../basic-details' -> 'report/basic-details'.
+    Falls back to the full path if nothing meaningful is left. This is a
+    best-effort heuristic -- verify against real log samples if precision
+    here matters for a given customer/product."""
+    segments = [s for s in path.split("/") if s]
+    kept = [s for s in segments if not is_id_segment(s)]
+    if not kept:
+        return path
+    return "/".join(kept[-2:])
+
+
 def extract_har(har_dict, window_minutes=2):
     """Pull error endpoint paths, error status codes, and the incident time
-    window from a parsed HAR dict. Only 4xx/5xx entries are used."""
+    window from a parsed HAR dict. Only 4xx/5xx entries from real API calls
+    are used -- fonts, images, analytics beacons, etc. that happen to 404
+    are ignored even though they technically errored, since Chrome tags
+    every HAR entry with a _resourceType we can filter on."""
     from urllib.parse import urlparse
 
-    paths, statuses, times, seen = [], set(), [], set()
+    paths, endpoint_hints = [], []
+    statuses, times = set(), []
+    seen_paths, seen_hints = set(), set()
+
     for e in har_dict.get("log", {}).get("entries", []):
         status = e.get("response", {}).get("status", 0)
         if status < 400:
             continue
-        path = urlparse(e.get("request", {}).get("url", "")).path
-        if path and path != "/" and path not in seen:
-            seen.add(path)
+
+        resource_type = e.get("_resourceType")
+        if resource_type is not None and resource_type not in BACKEND_RESOURCE_TYPES:
+            continue  # skip fonts/images/analytics beacons etc.
+
+        url = e.get("request", {}).get("url", "")
+        path = urlparse(url).path
+        if not path or path == "/":
+            continue
+        if STATIC_ASSET_RE.search(path):
+            continue  # safety net if _resourceType wasn't present on this entry
+
+        if path not in seen_paths:
+            seen_paths.add(path)
             paths.append(path)
+
+        hint = meaningful_endpoint(path)
+        if hint not in seen_hints:
+            seen_hints.add(hint)
+            endpoint_hints.append(hint)
+
         statuses.add(str(status))
         if e.get("startedDateTime"):
             times.append(e["startedDateTime"])
@@ -550,6 +606,7 @@ def extract_har(har_dict, window_minutes=2):
 
     return {
         "paths": paths,
+        "endpoint_hints": endpoint_hints,
         "statuses": sorted(statuses),
         "start_nano": start_nano,
         "end_nano": end_nano,
@@ -592,6 +649,7 @@ async def generate(
     abs_start: Optional[str] = Form(None),      # "YYYY-MM-DDTHH:MM" (UTC)
     abs_end: Optional[str] = Form(None),
     har: Optional[UploadFile] = File(None),
+    ticket_keywords: Optional[str] = Form(None),  # comma-separated, e.g. from an LLM keyword-extraction step
 ):
     instancetype = [e.strip() for e in env.split(",") if e.strip()]
 
@@ -609,24 +667,6 @@ async def generate(
             har_info = extract_har(har_dict)
         except Exception as ex:
             notes.append(f"Could not parse HAR: {ex}")
-
-    # body clauses from HAR
-    body_parts = []
-    if har_info:
-        g_path = group_clause(har_info["paths"])
-        g_status = group_clause(har_info["statuses"])
-        if g_path:
-            body_parts.append(g_path)
-        if g_status:
-            body_parts.append(g_status)
-        # If the HAR contained any error responses, also restrict to ERROR-level
-        # log lines (cuts the INFO noise). Bare 'ERROR' matches every log format.
-        if har_info["statuses"]:
-            body_parts.append("body contains 'ERROR'")
-
-    query_no_time = base
-    if body_parts:
-        query_no_time = base + " AND " + " AND ".join(body_parts)
 
     # ── Resolve time: HAR wins, else user input ───────────────────────
     start_nano = end_nano = None
@@ -650,17 +690,69 @@ async def generate(
         end_nano = int(now.timestamp() * 1_000_000_000)
         time_label = f"Last {relative} (relative)"
 
-    query_with_time = query_no_time
-    if start_nano and end_nano:
-        query_with_time = (
-            query_no_time
-            + f" AND timestamp >= {start_nano} AND timestamp <= {end_nano}"
-        )
+    def with_time(query_body: str) -> str:
+        if start_nano and end_nano:
+            return query_body + f" AND timestamp >= {start_nano} AND timestamp <= {end_nano}"
+        return query_body
+
+    # ── Build candidate queries ────────────────────────────────────────
+    # Rather than betting everything on one "best guess" query, generate
+    # several narrower/wider variants. Each gets run independently against
+    # SigNoz downstream, and whichever actually returns logs relevant to the
+    # ticket wins -- so a wrong guess here just means that candidate finds
+    # nothing, not that the whole request fails.
+    candidates = [
+        {
+            "strategy": "base",
+            "description": "Customer/product/environment only, no narrowing",
+            "query_without_time": base,
+            "query_with_time": with_time(base),
+        }
+    ]
+
+    if har_info:
+        har_path_candidates = list(dict.fromkeys(har_info["paths"] + har_info["endpoint_hints"]))
+        har_parts = []
+        g_path = group_clause(har_path_candidates)
+        g_status = group_clause(har_info["statuses"])
+        if g_path:
+            har_parts.append(g_path)
+        if g_status:
+            har_parts.append(g_status)
+        if har_info["statuses"]:
+            har_parts.append("body contains 'ERROR'")
+        if har_parts:
+            har_query = base + " AND " + " AND ".join(har_parts)
+            candidates.append({
+                "strategy": "har_narrowed",
+                "description": "Narrowed using error endpoints/status codes from the HAR file",
+                "query_without_time": har_query,
+                "query_with_time": with_time(har_query),
+            })
+
+    keyword_list = [k.strip() for k in (ticket_keywords or "").split(",") if k.strip()]
+    if keyword_list:
+        kw_group = group_clause(keyword_list)
+        kw_query = base + " AND " + kw_group
+        candidates.append({
+            "strategy": "ticket_keywords",
+            "description": f"Narrowed using keywords extracted from the ticket: {', '.join(keyword_list)}",
+            "query_without_time": kw_query,
+            "query_with_time": with_time(kw_query),
+        })
+
+    # "Best guess" single query for backward compatibility with callers that
+    # only look at the top-level fields: prefer HAR-narrowed, then
+    # ticket-keyword-narrowed, then base.
+    best = next((c for c in candidates if c["strategy"] == "har_narrowed"), None) \
+        or next((c for c in candidates if c["strategy"] == "ticket_keywords"), None) \
+        or candidates[0]
 
     return {
         "base_query": base,
-        "query_without_time": query_no_time,
-        "query_with_time": query_with_time,
+        "query_without_time": best["query_without_time"],
+        "query_with_time": best["query_with_time"],
+        "candidates": candidates,
         "time_label": time_label,
         "time_source": (
             "har" if (har_info and har_info["start_nano"])
@@ -669,6 +761,7 @@ async def generate(
         "har_summary": (
             {
                 "endpoints": har_info["paths"],
+                "endpoint_hints": har_info["endpoint_hints"],
                 "statuses": har_info["statuses"],
                 "window": time_label if har_info and har_info["start_nano"] else None,
             }
