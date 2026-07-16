@@ -75,10 +75,10 @@ nextera-csol-webapp-server-0,Nextera,csol
 omf-ctix-bg-server-1,OMF,ctix
 omf-ctix-bg-server-2,OMF,ctix
 omf-ctix-webapp-server,OMF,ctix
-pennstatehealth-csol-webapp-server,Penn State Health,csol
-pennstatehealth-ctix-server-1,Penn State Health,ctix
-pennstatehealth-ctix-server-2,Penn State Health,ctix
-pennstatehealth-ctix-server-0,Penn State Health,ctix
+pennstatehealth-csol-webapp-server,pennstatehealth,csol
+pennstatehealth-ctix-server-1,pennstatehealth,ctix
+pennstatehealth-ctix-server-2,pennstatehealth,ctix
+pennstatehealth-ctix-server-0,pennstatehealth,ctix
 schroders-csol-webapp-server,Schroders,csol
 schroders-csol-webapp-server-2,Schroders,csol
 snowcone-csap-webapp-server-0,M&T,csap
