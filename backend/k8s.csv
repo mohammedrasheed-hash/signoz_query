@@ -6,9 +6,9 @@ vii,aps1-mt,vii-ctix
 td-bank,cac1-mt,tdbank-ctix
 autoisac,euw1-mt,autoisac-ctix
 certin,euw1-mt,certin-ctix
-healthineers/siemens,euw1-mt,healthineers/siemens-ctix
+healthineers,euw1-mt,healthineers-ctix
 qcs,euw1-mt,qcs-ctix
-Unicredit,euw1-mt,Unicredit-ctix
+ucg,euw1-mt,ucg-ctix
 Z-CERT,euw1-mt,z-cert-ctix
 nhs,euw2-mt,nhs-ctix
 schroders,euw2-mt,schroders-ctix
@@ -26,16 +26,16 @@ poc-itmim,poc-use2-mt,poc-itmim
 a-isac,prod-use2-mt,a-isac-ctix
 armorpoint,prod-use2-mt,srmorpoint-ctix
 ascensionti,prod-use2-mt,ascensionti-ctix
-Blue Cross Blue Shield of Michigan/bcbsm,prod-use2-mt,bcbsm-ctix
-Berkshire Hathaway Energy/bhe,prod-use2-mt,bhe-ctix
+bcbsm,prod-use2-mt,bcbsm-ctix
+bhe,prod-use2-mt,bhe-ctix
 blue-cross,prod-use2-mt,blue-cross
-bank of montreal/bmo,prod-use2-mt,bmo-ctix
+bmo,prod-use2-mt,bmo-ctix
 carlyle,prod-use2-mt,carlyle-ctix
 citi,prod-use2-mt,citi-ctix
 clearme,prod-use2-mt,clearme-ctix
 cta,prod-use2-mt,cta-ctix
 cuw-tc,prod-use2-mt,cuw-tc-ctix
-damaseus,prod-use2-mt,damaseus-ctix
+damascus,prod-use2-mt,damascus-ctix
 e-isac,prod-use2-mt,e-isac-ctix
 fusion,prod-use2-mt,fusion-ctix
 guidepoint,prod-use2-mt,guidepoint-ctix
