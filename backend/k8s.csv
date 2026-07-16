@@ -3,6 +3,7 @@ cbar,aps1-mt,cbar-ctix
 idbi,aps1-mt,idbi-ctix
 idfc,aps1-mt,idfc-ctix
 vii,aps1-mt,vii-ctix
+ntt,aps1-mt,ntt-prod-ctix
 td-bank,cac1-mt,tdbank-ctix
 autoisac,euw1-mt,autoisac-ctix
 certin,euw1-mt,certin-ctix
@@ -24,11 +25,11 @@ poc-hilton,poc-use2-mt,poc-hilton-ctix
 poc-intuitive,poc-use2-mt,poc-intuitive-ctix
 poc-itmim,poc-use2-mt,poc-itmim
 a-isac,prod-use2-mt,a-isac-ctix
-armorpoint,prod-use2-mt,srmorpoint-ctix
+armorpoint,prod-use2-mt,armorpoint-ctix
 ascensionti,prod-use2-mt,ascensionti-ctix
 bcbsm,prod-use2-mt,bcbsm-ctix
 bhe,prod-use2-mt,bhe-ctix
-blue-cross,prod-use2-mt,blue-cross
+blue-cross,prod-use2-mt,blue-cross-ctix
 bmo,prod-use2-mt,bmo-ctix
 carlyle,prod-use2-mt,carlyle-ctix
 citi,prod-use2-mt,citi-ctix
@@ -42,11 +43,13 @@ guidepoint,prod-use2-mt,guidepoint-ctix
 h-isac,prod-use2-mt,h-isac-ctix
 jango-fitt,prod-use2-mt,jango-fitt-ctix
 kpmg,prod-use2-mt,kpmg-ctix
-lsisa,prod-use2-mt,Lsisa-ctix
+lsisa,prod-use2-mt,lsisao-ctix
 mfc,prod-use2-mt,mfc-ctix
 mizuho,prod-use2-mt,mizuho-ctix
 mm-isac,prod-use2-mt,mm-isac-ctix
 nextera,prod-use2-mt,nextera-ctix
+omf,prod-use2-mt,omf-ctix
+pennstatehealth,prod-use2-mt,pennstatehealth-ctix
 paramount,prod-use2-mt,paramount-ctix
 proskaurer,prod-use2-mt,proskaurer-ctix
 redpanda,prod-use2-mt,redpanda-ctix
